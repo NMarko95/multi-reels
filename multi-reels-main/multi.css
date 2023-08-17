@@ -1,0 +1,50 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    width: 100vw;
+    height: 100vh;
+    background-color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main{
+    max-height: 100%;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    background-color: #444343;
+    position: relative;
+}
+
+.main-canvas{
+    background-color: #045e04;
+    max-height: 80%;
+    max-width: 100%;
+    aspect-ratio: 5 / 4;
+}
+
+.main-canvas.win{
+    opacity: 0.5
+}
+
+.win-canvas{
+    max-height: 80%;
+    max-width: 100%;
+    aspect-ratio: 5 / 4;
+    position: absolute;
+    display: none;
+    top: 0;
+}
+
+@media(orientation: portrait){
+    .main-canvas, .win-canvas{
+        max-height: 50%;
+    }
+}
