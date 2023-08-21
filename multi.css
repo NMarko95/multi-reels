@@ -20,17 +20,31 @@ body{
     align-items: center;
     flex-direction: column;
     background-color: #444343;
+    position: relative;
 }
 
-canvas{
-    background-color: #056905;
+.main-canvas{
+    background-color: #045e04;
     max-height: 80%;
     max-width: 100%;
     aspect-ratio: 5 / 4;
 }
 
+.main-canvas.win{
+    opacity: 0.5
+}
+
+.win-canvas{
+    max-height: 80%;
+    max-width: 100%;
+    aspect-ratio: 5 / 4;
+    position: absolute;
+    display: none;
+    top: 0;
+}
+
 @media(orientation: portrait){
-    canvas{
+    .main-canvas, .win-canvas{
         max-height: 50%;
     }
 }
