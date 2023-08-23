@@ -15,6 +15,7 @@ let image, animateId, spriteAnimateId;
 let board = [],
   sprites = [],
   newBoard = [];
+
 for (let i = 0; i < tableDimX; i++) {
   board[i] = new Array(tableDimX);
   newBoard[i] = new Array(tableDimX - 1);
@@ -44,7 +45,7 @@ function generateRandomNumber() {
 let symbols = [],
   imagesLoaded = false;
 
-let availableSymbols = [2, 4, 7];
+let availableSymbols = [5, 7, 8];
 
 let randomNumber, randomSymbol;
 
@@ -98,14 +99,17 @@ let currentImg = generateRandomNumber(),
 
 let animateCounter = 0,
   currentSymbol,
-  fullAnimateCircle = 60,
-  slowingAnimateTime = 20,
+  fullAnimateCircle = 58,
+  animateModuo = fullAnimateCircle % 10,
+  slowingAnimateTime = tableDimX * tableDimY,
   spaceBlocked = false,
-  speed = canvas.height / 20,
-  slowingSpeed = speed / 5;
+  spacePressed = false,
+  speed = canvas.height / (tableDimX * tableDimY),
+  slowingSpeed = speed / tableDimX;
 
 let animationData = [],
   currentTop;
+
 for (let i = 0; i < tableDimX; i++) {
   animationData.push({
     lastAnimate: fullAnimateCircle + i * slowingAnimateTime,
@@ -141,6 +145,8 @@ function drawSymbol(currentSymbol, i, j) {
   currentSymbol.y += animationData[i].movementSpeed;
 }
 
+let isStopping = false;
+
 function animateSymbols() {
   if (animationData[tableDimX - 1].movementSpeed === 0) {
     animateCounter = 0;
@@ -148,8 +154,23 @@ function animateSymbols() {
     checkWin();
   } else {
     for (let i = 0; i < tableDimX; i++) {
-      if (animateCounter === animationData[i].lastAnimate - slowingAnimateTime)
+      if (
+        !isStopping &&
+        animateCounter === animationData[i].lastAnimate - slowingAnimateTime &&
+        animateCounter % 10 === animateModuo
+      )
         animationData[i].movementSpeed = slowingSpeed;
+      else if (
+        isStopping &&
+        animateCounter >= tableDimX * tableDimY &&
+        animateCounter % 10 === animateModuo
+      ) {
+        if (
+          animationData[i].movementSpeed === speed ||
+          animationData[i].movementSpeed === slowingSpeed
+        )
+          animationData[i].movementSpeed = slowingSpeed;
+      }
       c.clearRect(i * cellWidth, 0, cellWidth, canvas.height);
       for (let j = 0; j <= tableDimY; j++) {
         currentSymbol = board[i][j];
@@ -173,6 +194,7 @@ function findClosestValue(y) {
 }
 
 let tops = [];
+
 for (let i = 0; i <= tableDimX; i++) {
   tops[i] = parseInt((i - 1) * cellHeight + centeredHeight);
 }
@@ -182,9 +204,8 @@ let animatingSymbols = [];
 function spin() {
   getImages(0, false);
   spaceBlocked = true;
-  spriteAnimateCounter = 0;
-  currentIndexWinning = 0;
-  winningLines = [];
+  spriteAnimateCounter = currentIndexWinning = 0;
+  winningLines = animatingSymbols = [];
   animationData.map((ad) => {
     ad.movementSpeed = speed;
     return ad;
@@ -192,50 +213,67 @@ function spin() {
   winC.clearRect(0, 0, cellWidth * tableDimX, cellHeight * tableDimY);
   winCanvas.style.display = "none";
   currentTime = lastRender = Date.now();
-  animatingSymbols = [];
   animateSymbols();
 }
 
 let matchedSymbols;
 
 function checkWin() {
-  spaceBlocked = false;
+  isStopping = false;
   rearrangeBoard();
   for (let j = 0; j < tableDimY; j++) {
     currentSymbol = newBoard[0][j];
-    currentWinningLine.push(currentSymbol);
+    currentWinningLine = [];
+    currentWinningLine.push(newBoard[0][j]);
+    currentWinningLine.length = 1;
     matchedSymbols = true;
-    console.log(0, j);
-    console.log("---------");
     checkWinningLines(1, j - 1);
     checkWinningLines(1, j);
     checkWinningLines(1, j + 1);
-    //if (winningLines.length !== 0) animateWin();
   }
+  if (winningLines.length !== 0) animateWin();
+  setTimeout(() => (spaceBlocked = false), 200);
 }
-
-let newColumn = [];
 
 function checkWinningLines(x, y) {
   matchedSymbols = true;
-  while (x <= 4 && y >= 0 && y < 4 && matchedSymbols) {
+  while (x <= tableDimY && y >= 0 && y < tableDimY && matchedSymbols) {
     if (currentSymbol.img.src === newBoard[x][y].img.src) {
-      console.log(`Match for symbol: ${x} ${y}`);
-      if (x + 1 < 5) {
+      currentWinningLine.push(newBoard[x][y]);
+      if (x + 1 < tableDimX) {
         checkWinningLines(x + 1, y - 1);
         checkWinningLines(x + 1, y);
         checkWinningLines(x + 1, y + 1);
       }
+      if (currentWinningLine.length >= 3 && !checkIfSubset())
+        winningLines.push([...currentWinningLine]);
+      currentWinningLine.pop();
       matchedSymbols = false;
     } else matchedSymbols = false;
   }
+
   return;
 }
+
+let newColumn = [],
+  isSubset;
+
+function checkIfSubset() {
+  isSubset = false;
+  for (let i = 0; i < winningLines.length && !isSubset; i++) {
+    isSubset = currentWinningLine.every((element) =>
+      winningLines[i].includes(element)
+    );
+  }
+  return isSubset;
+}
+
+let lastHeight = Math.round(canvas.height - cellHeight + centeredHeight + 1);
 
 function rearrangeBoard() {
   for (let i = 0; i < tableDimX; i++) {
     for (let j = 0; j <= tableDimY; j++) {
-      if (board[i][j].y > 0 && board[i][j].y <= 824) {
+      if (board[i][j].y > 0 && board[i][j].y <= lastHeight) {
         newColumn.push(board[i][j]);
       }
     }
@@ -246,9 +284,6 @@ function rearrangeBoard() {
 }
 
 let currentSymbolImg,
-  lastWinIndex = 0,
-  currentXIndex = 1,
-  currentYIndex = 0,
   winningLines = [],
   currentWinningLine = [],
   currentCompareSymbol;
@@ -269,9 +304,10 @@ function animateWin() {
   animateWinningSymbols();
 }
 
+winC.strokeStyle = "yellow";
+winC.lineWidth = 3;
+
 function drawWinningLines(index) {
-  winC.strokeStyle = "yellow";
-  winC.lineWidth = 3;
   winC.beginPath();
   for (let i = 0; i < winningLines[index].length - 1; i++) {
     winC.moveTo(
@@ -321,7 +357,6 @@ function animateWinningSymbols() {
       symbolWidth,
       symbolHeight
     );
-
     winC.drawImage(
       currentSprite,
       0,
@@ -371,6 +406,7 @@ function resize(width, height, aspect) {
         aspectRatioScreen.heightScale;
     }
   }
+  resizeElementsMain();
 }
 
 function resizeElementsMain() {
@@ -378,14 +414,9 @@ function resizeElementsMain() {
   mainContainer.style.height = gameHeight + "px";
 }
 
-function fullResize() {
-  resize(innerWidth, innerHeight, ASPECT_RATIO_MAIN);
-  resizeElementsMain();
-}
-
 addEventListener("load", () => {
   onloadScale = innerWidth / innerHeight;
-  fullResize();
+  resize(innerWidth, innerHeight, ASPECT_RATIO_MAIN);
   let interval = setInterval(() => {
     if (imagesLoaded) {
       imagesLoaded = false;
@@ -396,13 +427,20 @@ addEventListener("load", () => {
 });
 
 addEventListener("keypress", (e) => {
-  if (!spaceBlocked && e.code === "Space") {
-    cancelAnimationFrame(spriteAnimateId);
-    spin();
+  if (e.code === "Space") {
+    if (spaceBlocked && spacePressed) {
+      spacePressed = false;
+      isStopping = true;
+    }
+    if (!spaceBlocked) {
+      spacePressed = true;
+      cancelAnimationFrame(spriteAnimateId);
+      spin();
+    }
   }
 });
 
 window.onresize = () => {
   onloadScale = innerWidth / innerHeight;
-  fullResize();
+  resize(innerWidth, innerHeight, ASPECT_RATIO_MAIN);
 };
