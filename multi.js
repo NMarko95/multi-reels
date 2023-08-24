@@ -99,9 +99,9 @@ let currentImg = generateRandomNumber(),
 
 let animateCounter = 0,
   currentSymbol,
-  fullAnimateCircle = 58,
-  animateModuo = fullAnimateCircle % 10,
-  slowingAnimateTime = tableDimX * tableDimY,
+  fullAnimateCircle = 68,
+  animateTime = 1000,
+  slowingAnimateTime = 300,
   spaceBlocked = false,
   spacePressed = false,
   speed = canvas.height / (tableDimX * tableDimY),
@@ -112,7 +112,7 @@ let animationData = [],
 
 for (let i = 0; i < tableDimX; i++) {
   animationData.push({
-    lastAnimate: fullAnimateCircle + i * slowingAnimateTime,
+    lastAnimate: animateTime,
     movementSpeed: speed,
   });
 }
@@ -156,19 +156,11 @@ function animateSymbols() {
     for (let i = 0; i < tableDimX; i++) {
       if (
         !isStopping &&
-        animateCounter === animationData[i].lastAnimate - slowingAnimateTime &&
-        animateCounter % 10 === animateModuo
+        currentTime - lastRender >= animationData[i].lastAnimate
       )
         animationData[i].movementSpeed = slowingSpeed;
-      else if (
-        isStopping &&
-        animateCounter >= tableDimX * tableDimY &&
-        animateCounter % 10 === animateModuo
-      ) {
-        if (
-          animationData[i].movementSpeed === speed ||
-          animationData[i].movementSpeed === slowingSpeed
-        )
+      else if (isStopping && currentTime - lastRender > slowingAnimateTime) {
+        if (animationData[i].movementSpeed === speed)
           animationData[i].movementSpeed = slowingSpeed;
       }
       c.clearRect(i * cellWidth, 0, cellWidth, canvas.height);
@@ -179,6 +171,7 @@ function animateSymbols() {
     }
     animateId = requestAnimationFrame(animateSymbols);
     animateCounter += 1;
+    currentTime = Date.now();
   }
 }
 
