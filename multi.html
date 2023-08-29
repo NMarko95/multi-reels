@@ -1,20 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Slots</title>
+    <link rel="stylesheet" href="./multi.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slots</title>
-  <link rel="stylesheet" href="./multi.css" />
-</head>
+  <body>
+    <div class="main">
+      <canvas class="main-canvas"></canvas>
+      <canvas class="win-canvas"></canvas>
+      <section class="information">
+        <div class="bank">
+          <label>BANK</label>
+          <span class="bank-span"></span>
+        </div>
+        <div class="win">
+          <label>WIN</label>
+          <span class="win-span"></span>
+        </div>
+        <div class="bet">
+          <label>BET</label>
+          <span class="bet-span"></span>
+        </div>
+      </section>
+    </div>
 
-<body>
-  <div class="main">
-    <canvas class="main-canvas"></canvas>
-    <canvas class="win-canvas"></canvas>
-  </div>
-
-  <script src="./multi.js"></script>
-</body>
-
+    <script src="./multi.js"></script>
+  </body>
 </html>

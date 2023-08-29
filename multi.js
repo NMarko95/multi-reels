@@ -1,6 +1,15 @@
 const canvas = document.querySelector(".main-canvas");
 const c = canvas.getContext("2d");
 
+const information = document.getElementsByClassName("information")[0];
+
+const bankSpan = document.getElementsByClassName("bank-span")[0];
+bankSpan.innerHTML = 5000.0;
+const winSpan = document.getElementsByClassName("win-span")[0];
+winSpan.innerHTML = 0;
+const betSpan = document.getElementsByClassName("bet-span")[0];
+betSpan.innerHTML = 2.0;
+
 const winCanvas = document.querySelector(".win-canvas");
 const winC = winCanvas.getContext("2d");
 
@@ -15,6 +24,57 @@ let image, animateId, spriteAnimateId;
 let board = [],
   sprites = [],
   newBoard = [];
+
+let scores = [
+  {
+    id: 2,
+    multipliers: {
+      x3: 0.5,
+      x4: 1.25,
+      x5: 5,
+    },
+  },
+  {
+    id: 3,
+    multipliers: {
+      x3: 0.5,
+      x4: 1.25,
+      x5: 5,
+    },
+  },
+  {
+    id: 6,
+    multipliers: {
+      x3: 0.25,
+      x4: 0.75,
+      x5: 2,
+    },
+  },
+  {
+    id: 5,
+    multipliers: {
+      x3: 0.25,
+      x4: 0.75,
+      x5: 2,
+    },
+  },
+  {
+    id: 7,
+    multipliers: {
+      x3: 0.25,
+      x4: 0.75,
+      x5: 2,
+    },
+  },
+  {
+    id: 8,
+    multipliers: {
+      x3: 0.25,
+      x4: 0.75,
+      x5: 2,
+    },
+  },
+];
 
 for (let i = 0; i < tableDimX; i++) {
   board[i] = new Array(tableDimX);
@@ -45,7 +105,7 @@ function generateRandomNumber() {
 let symbols = [],
   imagesLoaded = false;
 
-let availableSymbols = [5, 7, 8];
+let availableSymbols = [2, 3, 5, 6, 7];
 
 let randomNumber, randomSymbol;
 
@@ -99,9 +159,10 @@ let currentImg = generateRandomNumber(),
 
 let animateCounter = 0,
   currentSymbol,
-  fullAnimateCircle = 68,
-  animateTime = 1000,
-  slowingAnimateTime = 300,
+  animateTime = 59,
+  animateModuo = animateTime % 10,
+  slowingTime = 20,
+  stoppingTimeout = 500,
   spaceBlocked = false,
   spacePressed = false,
   speed = canvas.height / (tableDimX * tableDimY),
@@ -112,17 +173,12 @@ let animationData = [],
 
 for (let i = 0; i < tableDimX; i++) {
   animationData.push({
-    lastAnimate: animateTime,
+    lastAnimate: animateTime + i * slowingTime,
     movementSpeed: speed,
   });
 }
 
 function drawSymbol(currentSymbol, i, j) {
-  if (currentSymbol.y >= canvas.height) {
-    currentImg = generateRandomNumber();
-    currentSymbol.img = symbols[currentImg];
-    currentSymbol.y = -cellHeight;
-  }
   if (animationData[i].movementSpeed === slowingSpeed) {
     currentTop = findClosestValue(currentSymbol.y);
     if (currentSymbol.y + animationData[i].movementSpeed > currentTop) {
@@ -130,6 +186,12 @@ function drawSymbol(currentSymbol, i, j) {
       animationData[i].movementSpeed = 0;
     }
   }
+  if (currentSymbol.y >= canvas.height) {
+    currentImg = generateRandomNumber();
+    currentSymbol.img = symbols[currentImg];
+    currentSymbol.y = -cellHeight;
+  }
+
   c.drawImage(
     currentSymbol.img,
     0,
@@ -154,15 +216,16 @@ function animateSymbols() {
     checkWin();
   } else {
     for (let i = 0; i < tableDimX; i++) {
-      if (
-        !isStopping &&
-        currentTime - lastRender >= animationData[i].lastAnimate
+      if (!isStopping && animateCounter === animationData[i].lastAnimate)
+        animationData[i].movementSpeed = slowingSpeed;
+      else if (
+        isStopping &&
+        currentTime - lastRender > stoppingTimeout &&
+        animateCounter % 10 === animateModuo &&
+        animationData[i].movementSpeed === speed
       )
         animationData[i].movementSpeed = slowingSpeed;
-      else if (isStopping && currentTime - lastRender > slowingAnimateTime) {
-        if (animationData[i].movementSpeed === speed)
-          animationData[i].movementSpeed = slowingSpeed;
-      }
+
       c.clearRect(i * cellWidth, 0, cellWidth, canvas.height);
       for (let j = 0; j <= tableDimY; j++) {
         currentSymbol = board[i][j];
@@ -199,6 +262,9 @@ function spin() {
   spaceBlocked = true;
   spriteAnimateCounter = currentIndexWinning = 0;
   winningLines = animatingSymbols = [];
+  bank -= currentBet;
+  bankSpan.innerHTML = bank;
+  winSpan.innerHTML = totalSum;
   animationData.map((ad) => {
     ad.movementSpeed = speed;
     return ad;
@@ -224,8 +290,45 @@ function checkWin() {
     checkWinningLines(1, j);
     checkWinningLines(1, j + 1);
   }
-  if (winningLines.length !== 0) animateWin();
+  if (winningLines.length !== 0) {
+    sumWinnings();
+    animateWin();
+  }
   setTimeout(() => (spaceBlocked = false), 200);
+}
+
+let totalSum = 0,
+  currentSum = 0,
+  currentScore,
+  currentBet = 2.0,
+  bank = 5000.0;
+
+function sumWinnings() {
+  winningLines.forEach((line, i) => {
+    currentSplitSrc = line[0].img.src.split(".png")[0];
+    currentImgNumber = currentSplitSrc[currentSplitSrc.length - 1];
+    currentScore = scores.find((score) => score.id == currentImgNumber);
+    switch (line.length) {
+      case 3:
+        currentSum = currentScore.multipliers.x3 * currentBet;
+        break;
+      case 4:
+        currentSum = currentScore.multipliers.x4 * currentBet;
+        break;
+      case 5:
+        currentSum = currentScore.multipliers.x5 * currentBet;
+        break;
+    }
+    totalSum += currentSum;
+    console.log(line);
+    console.log(`Winning line ${i + 1} : ${currentSum}`);
+    currentSum = 0;
+  });
+  console.log(`Total sum: ${totalSum}`);
+  bank += totalSum;
+  bankSpan.innerHTML = bank;
+  winSpan.innerHTML = totalSum;
+  totalSum = 0;
 }
 
 function checkWinningLines(x, y) {
@@ -405,6 +508,7 @@ function resize(width, height, aspect) {
 function resizeElementsMain() {
   mainContainer.style.width = gameWidth + "px";
   mainContainer.style.height = gameHeight + "px";
+  information.style.width = canvas.style.width;
 }
 
 addEventListener("load", () => {
