@@ -23,8 +23,28 @@ body{
     position: relative;
 }
 
+.main.fadeOut{
+    animation: fadeOut 1s;
+    animation-iteration-count: 1;
+}
+
+.main.fadeIn{
+    animation: fadeIn 1s;
+    animation-iteration-count: 1;
+}
+
+@keyframes fadeOut{
+    0%{opacity: 1;}
+    100%{opacity: 0;}
+}
+
+@keyframes fadeIn{
+    0%{opacity: 0;}
+    100%{opacity: 1;}
+}
+
 .main-canvas{
-    background-color: #045e04;
+    background-color: #074607;
     max-height: 80%;
     max-width: 100%;
     aspect-ratio: 5 / 4;
@@ -43,10 +63,83 @@ body{
     top: 0;
 }
 
-.information{
-    height: 20%;
-    aspect-ratio: 5 / 1;
+.lines{
+    position: absolute;
+    bottom: 15%;
+    height: 5%;
+    width: 20%;
     display: flex;
+    justify-content: center;
+    gap: 5%;
+    align-items: center;
+    color: #fff;
+    font-size: 12px;
+}
+
+.lines-images{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%;
+}
+
+.lines-images > img{
+    height: 90%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+}
+
+.gamble-btn, .take-win{
+    position: absolute;
+    left: 7%;
+    top: 40%;
+    width: 9%;
+    height: 17%;
+    background-color: #0c0c70;
+    color: #fff;
+    outline: none;
+    border: none;
+    font-weight: 700;
+    font-size: 40px;
+    cursor: pointer;
+}
+
+.take-win{
+    width: 15%;
+    left: unset;
+    right: 3.5%;
+    font-size: 20px;
+}
+
+.take-win:disabled, .gamble-btn:disabled{
+    background-color: #736f6f;
+    color: #111010;
+    cursor: auto
+}
+
+.gamble-btn:not(:disabled), .take-win:not(:disabled){
+    animation: animationGrow 2.5s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes animationGrow{
+    0% {transform: scale(1);}
+    50% {transform: scale(1.15)}
+    100% {transform: scale(1)}
+}
+
+.gamble-btn:active:not(:disabled), .take-win:active:not(:disabled){
+    color: #0c0c70;
+    background-color: #fff;
+}
+
+.information{
+    height: 15%;
+    width: 50%;
+    display: flex;
+    position: absolute;
+    bottom: 0;
+    font-size: 18px;
 }
 
 .bank, .win, .bet{

@@ -1,17 +1,21 @@
+import { gamble } from "./gamble.js";
+
 const canvas = document.querySelector(".main-canvas");
-const c = canvas.getContext("2d");
+const context = canvas.getContext("2d");
 
 const information = document.getElementsByClassName("information")[0];
 
+const mainContainerGamble =
+  document.getElementsByClassName("main-container")[0];
+
 const bankSpan = document.getElementsByClassName("bank-span")[0];
-bankSpan.innerHTML = 5000.0;
 const winSpan = document.getElementsByClassName("win-span")[0];
 winSpan.innerHTML = 0;
 const betSpan = document.getElementsByClassName("bet-span")[0];
 betSpan.innerHTML = 2.0;
 
 const winCanvas = document.querySelector(".win-canvas");
-const winC = winCanvas.getContext("2d");
+const winContext = winCanvas.getContext("2d");
 
 const mainContainer = document.querySelector(".main");
 
@@ -81,6 +85,8 @@ for (let i = 0; i < tableDimX; i++) {
   newBoard[i] = new Array(tableDimX - 1);
 }
 
+let history = [];
+
 let currentTime, lastRender;
 
 canvas.height = winCanvas.height = spriteDim * tableDimY;
@@ -98,7 +104,7 @@ let centeredHeight = (cellHeight - symbolHeight) / 2,
 let gameWidth, gameHeight;
 
 function generateRandomNumber() {
-  const randomNumber = Math.floor(Math.random() * availableSymbols.length);
+  randomNumber = Math.floor(Math.random() * availableSymbols.length);
   return randomNumber;
 }
 
@@ -130,40 +136,95 @@ function getImages(counter, isSymbols) {
 
 getImages(0, true);
 
-function drawImages() {
-  for (let i = 0; i < tableDimX; i++) {
-    for (let j = 0; j <= tableDimY; j++) {
-      randomSymbol = generateRandomNumber();
-      board[i][j] = {
-        x: i * cellWidth + centeredWidth,
-        y: (j - 1) * cellHeight + centeredHeight,
-        img: symbols[randomSymbol],
-      };
-      c.drawImage(
-        symbols[randomSymbol],
-        0,
-        0,
-        symbols[randomSymbol].width,
-        symbols[randomSymbol].height,
-        i * cellWidth + centeredWidth,
-        (j - 1) * cellHeight + centeredHeight,
-        symbolWidth,
-        symbolHeight
-      );
+function drawImages(isTakingWin) {
+  if (isTakingWin) {
+    context.clearRect(0, 0, cellWidth * tableDimX, cellHeight * tableDimY);
+    for (let i = 0; i < tableDimX; i++) {
+      for (let j = 0; j < tableDimY; j++) {
+        currentSymbol = newBoard[i][j];
+        context.drawImage(
+          currentSymbol?.img,
+          0,
+          0,
+          currentSymbol?.img.width,
+          currentSymbol?.img.height,
+          i * cellWidth + centeredWidth,
+          j * cellHeight + centeredHeight,
+          symbolWidth,
+          symbolHeight
+        );
+      }
+    }
+  } else {
+    for (let i = 0; i < tableDimX; i++) {
+      for (let j = 0; j <= tableDimY; j++) {
+        randomSymbol = generateRandomNumber();
+        board[i][j] = {
+          x: i * cellWidth + centeredWidth,
+          y: (j - 1) * cellHeight + centeredHeight,
+          img: symbols[randomSymbol],
+        };
+        context.drawImage(
+          symbols[randomSymbol],
+          0,
+          0,
+          symbols[randomSymbol].width,
+          symbols[randomSymbol].height,
+          i * cellWidth + centeredWidth,
+          (j - 1) * cellHeight + centeredHeight,
+          symbolWidth,
+          symbolHeight
+        );
+      }
     }
   }
 }
 
-let currentImg = generateRandomNumber(),
-  animationId;
+const gambleBtn = document.querySelector(".gamble-btn");
+gambleBtn.disabled = true;
+gambleBtn.onclick = () => {
+  resetGame();
+  drawImages(true);
+  space.blocked = true;
+  mainContainer.style.opacity = 0;
+  mainContainer.classList.remove("fadeIn");
+  mainContainer.classList.add("fadeOut");
+  setTimeout(() => {
+    mainContainerGamble.classList.remove("fadeOut");
+    mainContainerGamble.classList.add("fadeIn");
+    cancelAnimationFrame(spriteAnimateId);
+    mainContainerGamble.style.opacity = 1;
+    mainContainerGamble.style.pointerEvents = "auto";
+    mainContainer.style.pointerEvents = "none";
+    winSpan.innerHTML = 0;
+    gamble(totalSum, space, bank, bankSpan, history);
+    totalSum = 0;
+  }, 1000);
+};
+
+const takeWinBtn = document.getElementsByClassName("take-win")[0];
+takeWinBtn.disabled = true;
+takeWinBtn.addEventListener("click", () => {
+  resetGame();
+  drawImages(true);
+  space.blocked = false;
+  bank.amount += totalSum;
+  totalSum = 0;
+  bankSpan.innerHTML = bank.amount;
+  winSpan.innerHTML = 0;
+});
+
+let currentImg = generateRandomNumber();
 
 let animateCounter = 0,
   currentSymbol,
-  animateTime = 59,
+  animateTime = 49,
   animateModuo = animateTime % 10,
   slowingTime = 20,
   stoppingTimeout = 500,
-  spaceBlocked = false,
+  space = {
+    blocked: false,
+  },
   spacePressed = false,
   speed = canvas.height / (tableDimX * tableDimY),
   slowingSpeed = speed / tableDimX;
@@ -191,8 +252,7 @@ function drawSymbol(currentSymbol, i, j) {
     currentSymbol.img = symbols[currentImg];
     currentSymbol.y = -cellHeight;
   }
-
-  c.drawImage(
+  context.drawImage(
     currentSymbol.img,
     0,
     0,
@@ -226,7 +286,7 @@ function animateSymbols() {
       )
         animationData[i].movementSpeed = slowingSpeed;
 
-      c.clearRect(i * cellWidth, 0, cellWidth, canvas.height);
+      context.clearRect(i * cellWidth, 0, cellWidth, canvas.height);
       for (let j = 0; j <= tableDimY; j++) {
         currentSymbol = board[i][j];
         drawSymbol(currentSymbol, i, j);
@@ -255,23 +315,34 @@ for (let i = 0; i <= tableDimX; i++) {
   tops[i] = parseInt((i - 1) * cellHeight + centeredHeight);
 }
 
-let animatingSymbols = [];
-
-function spin() {
+function resetGame() {
   getImages(0, false);
-  spaceBlocked = true;
+  cancelAnimationFrame(spriteAnimateId);
+  gambleBtn.disabled = true;
+  takeWinBtn.disabled = true;
+  space.blocked = true;
   spriteAnimateCounter = currentIndexWinning = 0;
-  winningLines = animatingSymbols = [];
-  bank -= currentBet;
-  bankSpan.innerHTML = bank;
+  winningLines = [];
   winSpan.innerHTML = totalSum;
   animationData.map((ad) => {
     ad.movementSpeed = speed;
     return ad;
   });
-  winC.clearRect(0, 0, cellWidth * tableDimX, cellHeight * tableDimY);
+  winContext.clearRect(0, 0, cellWidth * tableDimX, cellHeight * tableDimY);
   winCanvas.style.display = "none";
+  removeImageLines();
+}
+
+function spin() {
+  resetGame();
+  bank.amount -= currentBet;
   currentTime = lastRender = Date.now();
+  if (totalSum !== 0) {
+    bank.amount += totalSum;
+    totalSum = 0;
+    winSpan.innerHTML = totalSum;
+  }
+  bankSpan.innerHTML = bank.amount;
   animateSymbols();
 }
 
@@ -291,17 +362,24 @@ function checkWin() {
     checkWinningLines(1, j + 1);
   }
   if (winningLines.length !== 0) {
+    gambleBtn.disabled = false;
+    takeWinBtn.disabled = false;
     sumWinnings();
     animateWin();
+    setTimeout(() => (space.blocked = false), 1000);
+  } else {
+    setTimeout(() => (space.blocked = false), 200);
   }
-  setTimeout(() => (spaceBlocked = false), 200);
 }
 
 let totalSum = 0,
   currentSum = 0,
   currentScore,
   currentBet = 2.0,
-  bank = 5000.0;
+  bank = {
+    amount: 5000.0,
+  };
+bankSpan.innerHTML = bank.amount;
 
 function sumWinnings() {
   winningLines.forEach((line, i) => {
@@ -320,15 +398,9 @@ function sumWinnings() {
         break;
     }
     totalSum += currentSum;
-    console.log(line);
-    console.log(`Winning line ${i + 1} : ${currentSum}`);
     currentSum = 0;
   });
-  console.log(`Total sum: ${totalSum}`);
-  bank += totalSum;
-  bankSpan.innerHTML = bank;
   winSpan.innerHTML = totalSum;
-  totalSum = 0;
 }
 
 function checkWinningLines(x, y) {
@@ -379,43 +451,80 @@ function rearrangeBoard() {
   }
 }
 
-let currentSymbolImg,
-  winningLines = [],
-  currentWinningLine = [],
-  currentCompareSymbol;
+let winningLines = [],
+  currentWinningLine = [];
 
 function makeShadows() {
-  c.globalAlpha = 0.5;
-  c.fillRect(0, 0, cellWidth * tableDimX, cellHeight * tableDimY);
-  c.globalAlpha = 1;
+  context.globalAlpha = 0.5;
+  context.fillRect(0, 0, cellWidth * tableDimX, cellHeight * tableDimY);
+  context.globalAlpha = 1;
 }
 
 function animateWin() {
-  winC.clearRect(0, 0, winCanvas.width, winCanvas.height);
+  winContext.clearRect(0, 0, winCanvas.width, winCanvas.height);
   currentTime = lastRender = Date.now();
   findCorrectSprite(winningLines[0][0].img.src);
   makeShadows();
   winCanvas.style.display = "block";
+  //animateAllWinningSymbols();
   drawWinningLines(currentIndexWinning);
+  drawLine(currentIndexWinning);
   animateWinningSymbols();
 }
 
-winC.strokeStyle = "yellow";
-winC.lineWidth = 3;
+function animateAllWinningSymbols() {
+  if (currentTime - lastRender > spriteAnimateTime) {
+    spriteAnimateCounter = 0;
+    lastRender = Date.now();
+    cancelAnimationFrame(spriteAnimateId);
+    drawWinningLines(currentIndexWinning);
+    drawLine(currentIndexWinning);
+    animateWinningSymbols();
+  }
+  for (let i = 0; i < winningLines.length; i++) {
+    findCorrectSprite(winningLines[i][0].img.src);
+    drawWinningLines(i);
+    for (let j = 0; j < winningLines[i].length; j++) {
+      winContext.clearRect(
+        winningLines[i][j].x,
+        winningLines[i][j].y,
+        symbolWidth,
+        symbolHeight
+      );
+      winContext.drawImage(
+        currentSprite,
+        0,
+        spriteAnimateCounter * spriteDim,
+        spriteDim,
+        spriteDim,
+        winningLines[i][j].x,
+        winningLines[i][j].y,
+        symbolWidth,
+        symbolHeight
+      );
+    }
+  }
+  spriteAnimateCounter++;
+  currentTime = Date.now();
+  spriteAnimateId = requestAnimationFrame(animateAllWinningSymbols);
+}
+
+winContext.strokeStyle = "yellow";
+winContext.lineWidth = 1.5;
 
 function drawWinningLines(index) {
-  winC.beginPath();
+  winContext.beginPath();
   for (let i = 0; i < winningLines[index].length - 1; i++) {
-    winC.moveTo(
+    winContext.moveTo(
       winningLines[index][i].x + symbolWidth / 2,
       winningLines[index][i].y + symbolHeight / 2
     );
-    winC.lineTo(
+    winContext.lineTo(
       winningLines[index][i + 1].x + symbolWidth / 2,
       winningLines[index][i + 1].y + symbolHeight / 2
     );
   }
-  winC.stroke();
+  winContext.stroke();
 }
 
 let currentSplitSrc, currentImgNumber;
@@ -431,7 +540,27 @@ function findCorrectSprite(src) {
 let currentSprite,
   spriteAnimateCounter = 0,
   spriteAnimateTime = 40,
-  currentIndexWinning = 0;
+  currentIndexWinning = 0,
+  currentWinningImage;
+
+const lineSpan = document.querySelector(".line-span");
+const linesImages = document.querySelector(".lines-images");
+
+function removeImageLines() {
+  lineSpan.innerHTML = "";
+  while (linesImages.firstChild !== null)
+    linesImages.removeChild(linesImages.firstChild);
+}
+
+function drawLine(currentIndexWinning) {
+  removeImageLines();
+  lineSpan.innerHTML = `Line ${currentIndexWinning + 1}:`;
+  for (let i = 0; i < winningLines[currentIndexWinning].length; i++) {
+    currentWinningImage = document.createElement("img");
+    currentWinningImage.src = winningLines[currentIndexWinning][i].img.src;
+    linesImages.appendChild(currentWinningImage);
+  }
+}
 
 function animateWinningSymbols() {
   if (currentTime - lastRender > spriteAnimateTime) {
@@ -439,21 +568,22 @@ function animateWinningSymbols() {
     lastRender = Date.now();
   }
   if (spriteAnimateCounter >= 20) {
-    winC.clearRect(0, 0, winCanvas.width, winCanvas.height);
+    winContext.clearRect(0, 0, winCanvas.width, winCanvas.height);
     spriteAnimateCounter = 0;
     currentIndexWinning++;
     if (currentIndexWinning === winningLines.length) currentIndexWinning = 0;
     findCorrectSprite(winningLines[currentIndexWinning][0].img.src);
     drawWinningLines(currentIndexWinning);
+    drawLine(currentIndexWinning);
   }
   for (let i = 0; i < winningLines[currentIndexWinning].length; i++) {
-    winC.clearRect(
+    winContext.clearRect(
       winningLines[currentIndexWinning][i].x,
       winningLines[currentIndexWinning][i].y,
       symbolWidth,
       symbolHeight
     );
-    winC.drawImage(
+    winContext.drawImage(
       currentSprite,
       0,
       spriteAnimateCounter * spriteDim,
@@ -468,6 +598,8 @@ function animateWinningSymbols() {
   currentTime = Date.now();
   spriteAnimateId = requestAnimationFrame(animateWinningSymbols);
 }
+
+let onloadScale;
 
 let aspectRatioScreen = {
   widthScale: 16,
@@ -523,13 +655,13 @@ addEventListener("load", () => {
   });
 });
 
-addEventListener("keypress", (e) => {
+addEventListener("keydown", (e) => {
   if (e.code === "Space") {
-    if (spaceBlocked && spacePressed) {
+    if (space.blocked && spacePressed) {
       spacePressed = false;
       isStopping = true;
     }
-    if (!spaceBlocked) {
+    if (!space.blocked) {
       spacePressed = true;
       cancelAnimationFrame(spriteAnimateId);
       spin();
@@ -537,7 +669,9 @@ addEventListener("keypress", (e) => {
   }
 });
 
-window.onresize = () => {
+window.onresize = resizeHandler;
+
+function resizeHandler() {
   onloadScale = innerWidth / innerHeight;
   resize(innerWidth, innerHeight, ASPECT_RATIO_MAIN);
-};
+}

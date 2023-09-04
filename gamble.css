@@ -1,0 +1,241 @@
+.main-container{
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #074607;
+    font-size: 1.1em;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.main-container.fadeOut{
+    animation: fadeOut 1s;
+    animation-iteration-count: 1;
+}
+
+.main-container.fadeIn{
+    animation: fadeIn 1s;
+    animation-iteration-count: 1;
+}
+
+@keyframes fadeOut{
+    0%{opacity: 1;}
+    100%{opacity: 0;}
+}
+
+@keyframes fadeIn{
+    0%{opacity: 0;}
+    100%{opacity: 1;}
+}
+
+header{
+    width: 100%;
+    height: 25%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5%;
+    padding: 0 10px;
+}
+
+.history-text{
+    padding: 0.5%;
+}
+
+.history-canvas{
+    height: 90%;
+    aspect-ratio: 5 / 1.5;
+    padding: 0.5%;
+    overflow-x: auto;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.game{
+    width: 100%;
+    height: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5%;
+}
+
+.gamble-canvas{
+    max-height: 85%;
+    aspect-ratio: 1 / 1.5;
+}
+
+.buttons{
+    width: 30%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10%;
+}
+
+.buttons-select{
+    width: 100%;
+    height: 20%;
+    display: flex;
+    gap: 15%;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn, .take-win-btn{
+    height: 100%;
+    aspect-ratio: 2 / 1;
+    border-radius: 5px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    transition: 0.2s;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.take-win-btn{
+    height: 20%;
+    width: 50%;
+    color: #111;
+}
+
+.btn:hover{
+    transform: scale(1.1);
+}
+
+.btn:active{
+    background-color: #fff;
+    color: #111;
+}
+
+.take-win-btn:hover:not(:disabled){
+    transform: scale(1.1);
+}
+
+.take-win-btn:active:not(:disabled){
+    background-color: #111;
+    color: #fff;
+}
+
+.display{
+    height: 25%;
+    aspect-ratio: 2 / 1;
+    border: 1px solid #111;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.display-text{
+    color: #074607;
+}
+
+.values{
+    height: 15%;
+    display: flex;
+    justify-content: center;
+    gap: 5%;
+    align-items: center;
+}
+
+.values-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    height: 100%;
+    color: #fff;
+}
+
+@media(orientation: portrait){
+    header{
+        height: 20%;
+    }
+
+    .game{
+        height: 65%;
+        flex-direction: column;
+        gap: 2%;
+    }
+
+    .main-canvas{
+        height: 65%;
+    }
+
+    .buttons{
+        height: 20%;
+        flex-direction: row;
+        width: 100%;
+        gap: 5%;
+    }
+
+    .btn{
+        height: 50%;
+        width: 25%;
+    }
+
+    .display{
+        height: 60%;
+        width: 30%
+    }
+
+    .values{
+        height: 20%;
+        flex-direction: column;
+    }
+
+    .values-container{
+        height: 30%;
+        width: 100%;
+        flex-direction: row;
+        justify-content: center;
+        gap: 10%;
+    }
+}
+
+@media(max-width: 650px) or (max-height: 550px){
+    .main-container, .btn{
+        font-size: 0.75em;
+    }
+}
+@media(max-width: 400px) or (max-height: 350px){
+    .main-container, .btn{
+        font-size: 0.65em;
+    }
+}
+
+@media(max-width: 300px) or (max-height: 200px){
+    .main-container, .btn{
+        font-size: 0.5em;
+    }
+}
+
+@media(max-width: 300px) or (max-height: 250px){
+    .main-container, .btn{
+        font-size: 0.45em;
+    }
+}
+
+@media(max-width: 150px) or (max-height: 150px){
+    .main-container, .btn{
+        font-size: 0.4em;
+    }
+}
+
+@media(max-width: 100px) or (max-height: 100px){
+    .main-container{
+        font-size: 0.3em;
+    }
+}
+
+

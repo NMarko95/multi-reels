@@ -1,32 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Slots</title>
-    <link rel="stylesheet" href="./multi.css" />
-  </head>
 
-  <body>
-    <div class="main">
-      <canvas class="main-canvas"></canvas>
-      <canvas class="win-canvas"></canvas>
-      <section class="information">
-        <div class="bank">
-          <label>BANK</label>
-          <span class="bank-span"></span>
-        </div>
-        <div class="win">
-          <label>WIN</label>
-          <span class="win-span"></span>
-        </div>
-        <div class="bet">
-          <label>BET</label>
-          <span class="bet-span"></span>
-        </div>
-      </section>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slots</title>
+  <link rel="stylesheet" href="./multi.css" />
+  <link rel="stylesheet" href="./gamble.css" />
+</head>
 
-    <script src="./multi.js"></script>
-  </body>
+<body>
+  <div class="main">
+    <canvas class="main-canvas"></canvas>
+    <canvas class="win-canvas"></canvas>
+    <button class="gamble-btn">X2</button>
+    <section class="lines">
+      <span class="line-span"></span>
+      <div class="lines-images"></div>
+    </section>
+    <section class="information">
+      <div class="bank">
+        <label>BANK</label>
+        <span class="bank-span"></span>
+      </div>
+      <div class="win">
+        <label>WIN</label>
+        <span class="win-span"></span>
+      </div>
+      <div class="bet">
+        <label>BET</label>
+        <span class="bet-span"></span>
+      </div>
+    </section>
+    <button class="take-win">TAKE WIN</button>
+  </div>
+  <div class="main-container">
+    <header>
+      <canvas class="history-canvas"></canvas>
+    </header>
+    <main class="game">
+      <canvas class="gamble-canvas"></canvas>
+      <div class="buttons">
+        <div class="buttons-select">
+          <button class="btn red">RED</button>
+          <button class="btn black">BLACK</button>
+        </div>
+        <div class="display">
+          <span class="display-text"></span>
+        </div>
+        <button class="take-win-btn">TAKE WINNINGS</button>
+      </div>
+    </main>
+    <section class="values">
+      <div class="values-container">
+        ATTEMPTS
+        <span class="attempts-value"></span>
+      </div>
+      <div class="values-container">
+        GAMBLE TO WIN
+        <span class="gamble-win-value"></span>
+      </div>
+      <div class="values-container">
+        GAMBLE AMOUNT
+        <span class="gamble-amount-value"></span>
+      </div>
+    </section>
+  </div>
+
+  <script src="./multi.js" type="module"></script>
+  <script src="./gamble.js" type="module"></script>
+</body>
+
 </html>
